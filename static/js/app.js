@@ -28,6 +28,23 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+function showSection(sectionId, element) {
+    document.querySelectorAll(".module-section").forEach((sec) => {
+        sec.classList.remove("active-section");
+    });
+    document.querySelectorAll(".sidebar a").forEach((nav) => {
+        nav.classList.remove("active");
+    });
+
+    const target = document.getElementById(sectionId);
+    if (target) {
+        target.classList.add("active-section");
+    }
+    if (element) {
+        element.classList.add("active");
+    }
+}
+
 function handleSecurityScan(form, endpoint) {
     const formData = new FormData(form);
     const submitBtn = form.querySelector("button[type='submit']");
@@ -78,7 +95,6 @@ function displayRiskResult(form, data) {
         form.appendChild(resultContainer);
     }
 
-    // Quiz Special Response
     if (data.risk_level === "INFO") {
         const isCorrect = data.risk_score === 0;
         resultContainer.style.backgroundColor = isCorrect ? "rgba(15, 61, 41, 0.95)" : "rgba(92, 26, 27, 0.95)";

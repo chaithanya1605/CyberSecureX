@@ -25,7 +25,7 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
-# --- HELPER FUNCTION: SUPPORTS BOTH JSON AND FORM DATA PAYLOADS ---
+# --- HELPER FUNCTIONS ---
 
 def get_req_data():
     """Extracts data whether incoming request is JSON or Form Data."""
@@ -172,7 +172,6 @@ def login():
         if not identity or not password:
             return render_template('log in page.html', error="Please fill in all required fields.")
 
-        # Match either Username OR Email
         user = User.query.filter((User.username == identity) | (User.email == identity)).first()
         if user and check_password_hash(user.password_hash, password):
             session['user_id'] = user.id
@@ -226,7 +225,7 @@ def dashboard():
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return render_template('logout.html')
 
 @app.route('/view_report')
 def view_report():
@@ -434,4 +433,3 @@ def submit_quiz():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-    
