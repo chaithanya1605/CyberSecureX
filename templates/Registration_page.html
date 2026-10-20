@@ -5,11 +5,34 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registration - CyberSecureX</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        .password-field-container {
+            position: relative;
+            width: 100%;
+        }
+        .password-field-container input {
+            padding-right: 40px;
+        }
+        .toggle-password-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            font-size: 16px;
+            user-select: none;
+            opacity: 0.7;
+        }
+        .toggle-password-icon:hover {
+            opacity: 1;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>CyberSecureX</h1>
         <h2>Registration</h2>
+        {% if error %}<p style="color:#ff4d4d; font-weight:bold;">{{ error }}</p>{% endif %}
         <form action="/register" method="post">
             <label for="username">Username:</label>
             <input type="text" id="username" name="username" placeholder="User name" required>
@@ -18,10 +41,16 @@
             <input type="email" id="email" name="email" placeholder="Enter your Email" required>
 
             <label for="password">Password:</label>
-            <input type="password" id="password" name="password" placeholder="Password" required>
+            <div class="password-field-container">
+                <input type="password" id="password" name="password" placeholder="Password" required>
+                <span class="toggle-password-icon" onclick="togglePasswordVisibility('password', this)">👁️</span>
+            </div>
 
             <label for="confirmPassword">Confirm Password:</label>
-            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+            <div class="password-field-container">
+                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm Password" required>
+                <span class="toggle-password-icon" onclick="togglePasswordVisibility('confirmPassword', this)">👁️</span>
+            </div>
 
             <label for="phone">Phone number:</label>
             <input type="tel" id="phone" name="phone" placeholder="Phone Number">
@@ -30,5 +59,18 @@
         </form>
         <p>Already registered? <a href="/login">Login</a></p>
     </div>
+
+    <script>
+        function togglePasswordVisibility(inputId, icon) {
+            const field = document.getElementById(inputId);
+            if (field.type === "password") {
+                field.type = "text";
+                icon.textContent = "🙈";
+            } else {
+                field.type = "password";
+                icon.textContent = "👁️";
+            }
+        }
+    </script>
 </body>
 </html>
