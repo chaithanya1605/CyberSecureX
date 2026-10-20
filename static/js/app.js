@@ -28,47 +28,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
-// --- NAVIGATION & AUTOMATIC FORM RESET ENGINE ---
-
-window.showSection = function (sectionId, element) {
-    // 1. Remove active-section class from all module sections
-    const sections = document.querySelectorAll(".module-section");
-    sections.forEach((sec) => sec.classList.remove("active-section"));
-
-    // 2. Add active-section class to target section
-    const targetSection = document.getElementById(sectionId);
-    if (targetSection) {
-        targetSection.classList.add("active-section");
-    }
-
-    // 3. Remove active highlighting from sidebar links and activate selected link
-    const navLinks = document.querySelectorAll(".sidebar a");
-    navLinks.forEach((link) => link.classList.remove("active"));
-
-    if (element) {
-        element.classList.add("active");
-    }
-
-    // 4. Reset all forms and clear previous scan result cards
-    resetAllDashboardForms();
-
-    // 5. Scroll main container to top
-    const mainContent = document.querySelector(".main-content");
-    if (mainContent) {
-        mainContent.scrollTop = 0;
-    }
-};
-
-function resetAllDashboardForms() {
-    // Reset all form inputs across all sections
-    document.querySelectorAll("form").forEach((form) => form.reset());
-
-    // Remove all dynamically generated risk result cards
-    document.querySelectorAll(".scan-result-card").forEach((card) => card.remove());
-}
-
-// --- SECURITY SCAN & THREAT HANDLING ---
-
 function handleSecurityScan(form, endpoint) {
     const formData = new FormData(form);
     const submitBtn = form.querySelector("button[type='submit']");
@@ -119,7 +78,7 @@ function displayRiskResult(form, data) {
         form.appendChild(resultContainer);
     }
 
-    // Quiz Response
+    // Quiz Special Response
     if (data.risk_level === "INFO") {
         const isCorrect = data.risk_score === 0;
         resultContainer.style.backgroundColor = isCorrect ? "rgba(15, 61, 41, 0.95)" : "rgba(92, 26, 27, 0.95)";
@@ -207,3 +166,60 @@ function addRecordToHistoryTable(scanType, targetInfo, riskLevel, riskScore) {
     if (emptyRow) emptyRow.remove();
 
     const now = new Date();
+    const formattedDate = now.getFullYear() + "-" +
+        String(now.getMonth() + 1).padStart(2, "0") + "-" +
+        String(now.getDate()).padStart(2, "0") + " " +
+        String(now.getHours()).padStart(2, "0") + ":" +
+        String(now.getMinutes()).padStart(2, "0") + ":" +
+        String(now.getSeconds()).padStart(2, "0");
+
+    let btnClass = riskLevel === "HIGH" ? "btn-danger" : (riskLevel === "MEDIUM" ? "btn-indigo" : "btn-success");
+
+    const row = document.createElement("tr");
+    row.innerHTML = `
+        <td>${formattedDate}</td>
+        <td>${scanType}</td>
+        <td>${escapeHtml(targetInfo)}</td>
+        <td><span class="btn-action ${btnClass}">${riskLevel} (${riskScore}%)</span></td>
+        <td>Completed</td>
+    `;
+
+    tableBody.insertBefore(row, tableBody.firstChild);
+}
+
+function handleAiChat(form) {
+    const input = form.querySelector("input[name='question']");
+    const userMsg = input.value.trim();
+    if (!userMsg) return;
+
+    const chatCard = form.closest(".dash-card");
+
+    const userRow = document.createElement("div");
+    userRow.className = "module-row";
+    userRow.innerHTML = `<span class="module-name"><strong>You:</strong> ${escapeHtml(userMsg)}</span>`;
+    chatCard.insertBefore(userRow, form);
+
+    input.value = "";
+
+    const formData = new FormData();
+    formData.append("question", userMsg);
+
+    fetch("/ask_ai", {
+        method: "POST",
+        body: formData,
+    })
+        .then((res) => res.json())
+        .then((data) => {
+            if (data.status === "success") {
+                const botRow = document.createElement("div");
+                botRow.className = "module-row";
+                botRow.style.borderColor = "#00eaff";
+                botRow.innerHTML = `<span class="module-name">${data.response}</span>`;
+                chatCard.insertBefore(botRow, form);
+            }
+        });
+}
+
+function escapeHtml(text) {
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
