@@ -354,41 +354,6 @@
         </main>
     </div>
 
-    <script>
-        function showSection(sectionId, navElement) {
-            // 1. Hide all sections
-            var sections = document.querySelectorAll('.module-section');
-            for (var i = 0; i < sections.length; i++) {
-                sections[i].classList.remove('active-section');
-            }
-
-            // 2. Display selected section
-            var target = document.getElementById(sectionId);
-            if (target) {
-                target.classList.add('active-section');
-            }
-
-            // 3. Highlight sidebar link
-            if (navElement) {
-                var navLinks = document.querySelectorAll('.sidebar a');
-                for (var j = 0; j < navLinks.length; j++) {
-                    navLinks[j].classList.remove('active');
-                }
-                navElement.classList.add('active');
-            }
-
-            // 4. Reset all forms and remove old result boxes when switching sections
-            var forms = document.querySelectorAll('form');
-            for (var k = 0; k < forms.length; k++) {
-                forms[k].reset();
-            }
-
-            var resultCards = document.querySelectorAll('.scan-result-card');
-            for (var m = 0; m < resultCards.length; m++) {
-                resultCards[m].remove();
-            }
-        }
-    </script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
