@@ -5,6 +5,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - CyberSecureX</title>
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        /* Guarantees clean section visibility on tab switching */
+        .module-section {
+            display: none !important;
+        }
+        .module-section.active-section {
+            display: block !important;
+        }
+    </style>
 </head>
 <body class="dashboard-body">
 
@@ -261,7 +270,7 @@
                     <h3>🚨 I've Been Scammed — Emergency Helpline</h3>
                     <div class="module-row">
                         <span class="module-name">📞 <strong>Cyber Crime Helpline:</strong> Dial <strong>1930</strong> (India) | <strong>Portal:</strong> www.cybercrime.gov.in</span>
-                        <a href="https://www.cybercrime.gov.in" target="_blank" class="btn-action btn-danger">Report Incident</a>
+                        <a href="https://www.cybercrime.gov.in" target="_blank" class="btn-action btn-danger" style="text-decoration:none; display:inline-block;">Report Incident</a>
                     </div>
                 </div>
             </section>
@@ -347,19 +356,36 @@
 
     <script>
         function showSection(sectionId, navElement) {
+            // 1. Hide all sections
             var sections = document.querySelectorAll('.module-section');
             for (var i = 0; i < sections.length; i++) {
                 sections[i].classList.remove('active-section');
             }
 
-            document.getElementById(sectionId).classList.add('active-section');
+            // 2. Display selected section
+            var target = document.getElementById(sectionId);
+            if (target) {
+                target.classList.add('active-section');
+            }
 
+            // 3. Highlight sidebar link
             if (navElement) {
                 var navLinks = document.querySelectorAll('.sidebar a');
                 for (var j = 0; j < navLinks.length; j++) {
                     navLinks[j].classList.remove('active');
                 }
                 navElement.classList.add('active');
+            }
+
+            // 4. Reset all forms and remove old result boxes when switching sections
+            var forms = document.querySelectorAll('form');
+            for (var k = 0; k < forms.length; k++) {
+                forms[k].reset();
+            }
+
+            var resultCards = document.querySelectorAll('.scan-result-card');
+            for (var m = 0; m < resultCards.length; m++) {
+                resultCards[m].remove();
             }
         }
     </script>
