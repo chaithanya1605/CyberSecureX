@@ -28,6 +28,42 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 });
 
+// --- NAVIGATION & AUTOMATIC FORM RESET ENGINE ---
+
+window.showSection = function (sectionId, element) {
+    // 1. Hide all dashboard section containers
+    const sections = document.querySelectorAll(".section-content, .dashboard-section");
+    sections.forEach((sec) => (sec.style.display = "none"));
+
+    // 2. Remove active highlighting from sidebar links
+    const navLinks = document.querySelectorAll(".sidebar a, .sidebar-nav a, .nav-item");
+    navLinks.forEach((link) => link.classList.remove("active"));
+
+    // 3. Display target section
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) {
+        targetSection.style.display = "block";
+    }
+
+    // 4. Highlight clicked sidebar link
+    if (element) {
+        element.classList.add("active");
+    }
+
+    // 5. Reset all forms and clear existing risk result cards
+    resetAllDashboardForms();
+};
+
+function resetAllDashboardForms() {
+    // Reset all form inputs across sections
+    document.querySelectorAll("form").forEach((form) => form.reset());
+
+    // Remove all dynamically generated risk result cards
+    document.querySelectorAll(".scan-result-card").forEach((card) => card.remove());
+}
+
+// --- SECURITY SCAN & THREAT HANDLING ---
+
 function handleSecurityScan(form, endpoint) {
     const formData = new FormData(form);
     const submitBtn = form.querySelector("button[type='submit']");
@@ -78,7 +114,7 @@ function displayRiskResult(form, data) {
         form.appendChild(resultContainer);
     }
 
-    // Quiz Special Response
+    // Quiz Response
     if (data.risk_level === "INFO") {
         const isCorrect = data.risk_score === 0;
         resultContainer.style.backgroundColor = isCorrect ? "rgba(15, 61, 41, 0.95)" : "rgba(92, 26, 27, 0.95)";
