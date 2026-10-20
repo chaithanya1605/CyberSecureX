@@ -25,6 +25,21 @@ db.init_app(app)
 with app.app_context():
     db.create_all()
 
+# --- HELPER FUNCTION: SUPPORTS BOTH JSON AND FORM DATA PAYLOADS ---
+
+def get_req_data():
+    """Extracts data whether incoming request is JSON or Form Data."""
+    if request.is_json:
+        return request.get_json(silent=True) or {}
+    return request.form or {}
+
+def safe_int(val, default=0):
+    """Safely converts string/float inputs to integer without crashing."""
+    try:
+        return int(val)
+    except (ValueError, TypeError):
+        return default
+
 # --- REPORT & COMPLAINT EMAIL ENGINE ---
 
 def build_complaint_email_body(case_id, scan_type, target_info, risk_score, details):
@@ -82,14 +97,14 @@ def send_high_risk_complaint_email(case_id, scan_type, target_info, risk_score, 
 def calculate_email_risk(sender, subject, content):
     score, triggers = 0, []
     phishing_words = ['urgent', 'verify', 'account suspended', 'bank', 'lottery', 'winner', 'click here', 'password reset', 'kyc']
-    content_lower = (subject + " " + content).lower()
+    content_lower = f"{subject} {content}".lower()
     
     for word in phishing_words:
         if word in content_lower:
             score += 18
             triggers.append(f"Suspicious phishing keyword: '{word}'")
             
-    if re.search(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', content):
+    if re.search(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+', content_lower):
         score += 25
         triggers.append("Embedded unverified link")
         
@@ -143,32 +158,43 @@ def calculate_instagram_risk(followers, following, posts, bio):
 
 @app.route('/')
 def home():
-    if 'user_id' in session: return redirect(url_for('dashboard'))
+    if 'user_id' in session: 
+        return redirect(url_for('dashboard'))
     return render_template('log in page.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        user = User.query.filter_by(username=request.form.get('username'), email=request.form.get('email')).first()
-        if user and check_password_hash(user.password_hash, request.form.get('password')):
-            session['user_id'], session['username'] = user.id, user.username
+        data = get_req_data()
+        identity = data.get('username') or data.get('email') or data.get('identity', '')
+        password = data.get('password', '')
+
+        if not identity or not password:
+            return render_template('log in page.html', error="Please fill in all required fields.")
+
+        # Match either Username OR Email
+        user = User.query.filter((User.username == identity) | (User.email == identity)).first()
+        if user and check_password_hash(user.password_hash, password):
+            session['user_id'] = user.id
+            session['username'] = user.username
             return redirect(url_for('dashboard'))
-        return render_template('log in page.html', error="Invalid credentials")
+            
+        return render_template('log in page.html', error="Invalid username/email or password")
     return render_template('log in page.html')
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
-        confirm_password = request.form.get('confirmPassword')
-        phone = request.form.get('phone')
+        data = get_req_data()
+        username = data.get('username', '')
+        email = data.get('email', '')
+        password = data.get('password', '')
+        confirm_password = data.get('confirmPassword') or data.get('confirm_password', '')
+        phone = data.get('phone', '')
 
         if password != confirm_password:
             return render_template('Registration_page.html', error="Passwords do not match!")
 
-        # Check if username or email already exists to prevent SQL IntegrityError
         existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
         if existing_user:
             return render_template('Registration_page.html', error="Username or Email is already registered!")
@@ -192,21 +218,22 @@ def register():
 
 @app.route('/dashboard')
 def dashboard():
-    if 'user_id' not in session: return redirect(url_for('login'))
+    if 'user_id' not in session: 
+        return redirect(url_for('login'))
     scans = ScanHistory.query.filter_by(user_id=session['user_id']).order_by(ScanHistory.timestamp.desc()).limit(20).all()
     return render_template('dashboard.html', username=session.get('username'), scans=scans)
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return render_template('logout.html')
+    return redirect(url_for('login'))
 
 @app.route('/view_report')
 def view_report():
     case_id = request.args.get('case_id', f"CX-{uuid.uuid4().hex[:8].upper()}")
     scan_type = request.args.get('scan_type', 'Threat Scan')
     target_info = request.args.get('target_info', 'N/A')
-    risk_score = int(request.args.get('risk_score', 0))
+    risk_score = safe_int(request.args.get('risk_score', 0))
     risk_level = request.args.get('risk_level', 'LOW')
     details = request.args.get('details', 'No threat factors recorded.')
     timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S IST')
@@ -225,7 +252,11 @@ def view_report():
 
 @app.route('/analyze_email', methods=['POST'])
 def analyze_email():
-    sender, subject, content = request.form.get('sender', ''), request.form.get('subject', ''), request.form.get('content', '')
+    data = get_req_data()
+    sender = data.get('sender', '')
+    subject = data.get('subject', '')
+    content = data.get('content', '')
+
     risk_score, risk_level, details = calculate_email_risk(sender, subject, content)
     case_id = f"CX-EML-{uuid.uuid4().hex[:6].upper()}"
     
@@ -235,7 +266,7 @@ def analyze_email():
         email_body = build_complaint_email_body(case_id, "Email Phishing Scan", sender, risk_score, details)
         email_sent = send_high_risk_complaint_email(case_id, "Email Phishing Scan", sender, risk_score, details, email_body)
     
-    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Email Scan", target_info=sender, risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
+    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Email Scan", target_info=sender or "N/A", risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
     db.session.add(scan)
     db.session.commit()
 
@@ -243,7 +274,9 @@ def analyze_email():
 
 @app.route('/analyze_url', methods=['POST'])
 def analyze_url():
-    url = request.form.get('url', '')
+    data = get_req_data()
+    url = data.get('url', '')
+
     risk_score, risk_level, details = calculate_url_risk(url)
     case_id = f"CX-URL-{uuid.uuid4().hex[:6].upper()}"
 
@@ -253,7 +286,7 @@ def analyze_url():
         email_body = build_complaint_email_body(case_id, "Malicious URL Checker", url, risk_score, details)
         email_sent = send_high_risk_complaint_email(case_id, "Malicious URL Checker", url, risk_score, details, email_body)
 
-    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Website Scan", target_info=url, risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
+    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Website Scan", target_info=url or "N/A", risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
     db.session.add(scan)
     db.session.commit()
 
@@ -261,11 +294,12 @@ def analyze_url():
 
 @app.route('/analyze_instagram', methods=['POST'])
 def analyze_instagram():
-    username = request.form.get('Username', '')
-    followers = int(request.form.get('Followers', 0))
-    following = int(request.form.get('Following', 0))
-    posts = int(request.form.get('Posts', 0))
-    bio = request.form.get('Bio', '')
+    data = get_req_data()
+    username = data.get('username') or data.get('Username') or ''
+    followers = safe_int(data.get('followers') or data.get('Followers'))
+    following = safe_int(data.get('following') or data.get('Following'))
+    posts = safe_int(data.get('posts') or data.get('Posts'))
+    bio = data.get('bio') or data.get('Bio') or ''
 
     risk_score, risk_level, details = calculate_instagram_risk(followers, following, posts, bio)
     case_id = f"CX-IG-{uuid.uuid4().hex[:6].upper()}"
@@ -284,7 +318,11 @@ def analyze_instagram():
 
 @app.route('/analyze_message', methods=['POST'])
 def analyze_message():
-    phone, platform, message = request.form.get('phone', ''), request.form.get('platform', ''), request.form.get('message', '')
+    data = get_req_data()
+    phone = data.get('phone', '')
+    platform = data.get('platform', 'SMS')
+    message = data.get('message', '')
+
     risk_score, risk_level, details = calculate_email_risk(phone, platform, message)
     case_id = f"CX-MSG-{uuid.uuid4().hex[:6].upper()}"
 
@@ -294,7 +332,7 @@ def analyze_message():
         email_body = build_complaint_email_body(case_id, f"{platform.upper()} Filter", phone, risk_score, details)
         email_sent = send_high_risk_complaint_email(case_id, f"{platform.upper()} Filter", phone, risk_score, details, email_body)
 
-    scan = ScanHistory(user_id=session.get('user_id'), scan_type=f"{platform.upper()} Filter", target_info=phone, risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
+    scan = ScanHistory(user_id=session.get('user_id'), scan_type=f"{platform.upper()} Filter", target_info=phone or "N/A", risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
     db.session.add(scan)
     db.session.commit()
 
@@ -302,7 +340,10 @@ def analyze_message():
 
 @app.route('/check_spam', methods=['POST'])
 def check_spam():
-    phone, details_text = request.form.get('phone', ''), request.form.get('details', '')
+    data = get_req_data()
+    phone = data.get('phone', '')
+    details_text = data.get('details', '')
+
     risk_score, risk_level, details = calculate_email_risk(phone, "Spam Call/SMS", details_text)
     case_id = f"CX-SPM-{uuid.uuid4().hex[:6].upper()}"
 
@@ -312,7 +353,7 @@ def check_spam():
         email_body = build_complaint_email_body(case_id, "Spam Detection", phone, risk_score, details)
         email_sent = send_high_risk_complaint_email(case_id, "Spam Detection", phone, risk_score, details, email_body)
 
-    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Spam Detection", target_info=phone, risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
+    scan = ScanHistory(user_id=session.get('user_id'), scan_type="Spam Detection", target_info=phone or "N/A", risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=email_sent)
     db.session.add(scan)
     db.session.commit()
 
@@ -320,7 +361,9 @@ def check_spam():
 
 @app.route('/check_password', methods=['POST'])
 def check_password():
-    password = request.form.get('password', '')
+    data = get_req_data()
+    password = data.get('password', '')
+
     risk_score = 80 if len(password) < 8 else (35 if not re.search(r"[!@#$%^&*]", password) else 10)
     risk_level = "HIGH" if risk_score >= 70 else ("MEDIUM" if risk_score >= 35 else "LOW")
     details = "\n- Weak password: Length is under 8 characters." if risk_score >= 70 else "Password meets length and symbol requirements."
@@ -338,9 +381,11 @@ def check_password():
 
 @app.route('/check_2fa', methods=['POST'])
 def check_2fa():
-    account = request.form.get('accountName', '')
-    two_factor = request.form.get('twoFactor', 'no')
-    risk_score = 80 if two_factor == 'no' else 10
+    data = get_req_data()
+    account = data.get('accountName') or data.get('account', '')
+    two_factor = data.get('twoFactor') or data.get('two_factor', 'no')
+
+    risk_score = 80 if two_factor.lower() == 'no' else 10
     risk_level = "HIGH" if risk_score >= 70 else "LOW"
     details = "\n- Two-Factor Authentication is disabled! Account is exposed to credential stuffing." if risk_score >= 70 else "2FA is active."
     case_id = "CX-2FA-001"
@@ -349,7 +394,7 @@ def check_2fa():
     if risk_score >= 70:
         email_body = build_complaint_email_body(case_id, "2FA Audit", account, risk_score, details)
 
-    scan = ScanHistory(user_id=session.get('user_id'), scan_type="2FA Audit", target_info=account, risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=False)
+    scan = ScanHistory(user_id=session.get('user_id'), scan_type="2FA Audit", target_info=account or "N/A", risk_score=risk_score, risk_level=risk_level, report_details=details, email_alert_sent=False)
     db.session.add(scan)
     db.session.commit()
 
@@ -364,21 +409,29 @@ def scan_qr():
 
 @app.route('/ask_ai', methods=['POST'])
 def ask_ai():
-    q_lower = request.form.get('question', '').strip().lower()
-    if 'phishing' in q_lower or 'link' in q_lower: response = "🛡️ **CyberSecureX AI:** Phishing links often mimic official domain names. Always check the exact domain spelling, verify SSL HTTPS certificates, and never reveal OTPs."
-    elif 'scam' in q_lower or 'money' in q_lower or 'fraud' in q_lower: response = "🚨 **CyberSecureX Helpline Alert:** If you have lost money to a online scam, dial **1930** immediately to freeze funds and submit a complaint at **www.cybercrime.gov.in**."
-    else: response = "🛡️ **CyberSecureX Assistant:** Always keep two-factor authentication enabled, avoid using public Wi-Fi for bank transactions, and keep software updated."
+    data = get_req_data()
+    question = data.get('question', '').strip()
+    q_lower = question.lower()
+
+    if 'phishing' in q_lower or 'link' in q_lower: 
+        response = "🛡️ **CyberSecureX AI:** Phishing links often mimic official domain names. Always check the exact domain spelling, verify SSL HTTPS certificates, and never reveal OTPs."
+    elif 'scam' in q_lower or 'money' in q_lower or 'fraud' in q_lower: 
+        response = "🚨 **CyberSecureX Helpline Alert:** If you have lost money to an online scam, dial **1930** immediately to freeze funds and submit a complaint at **www.cybercrime.gov.in**."
+    else: 
+        response = "🛡️ **CyberSecureX Assistant:** Always keep two-factor authentication enabled, avoid using public Wi-Fi for bank transactions, and keep software updated."
     
-    chat = ChatLog(user_id=session.get('user_id'), user_message=request.form.get('question', ''), bot_response=response)
+    chat = ChatLog(user_id=session.get('user_id'), user_message=question, bot_response=response)
     db.session.add(chat)
     db.session.commit()
     return jsonify({'status': 'success', 'response': response})
 
 @app.route('/submit_quiz', methods=['POST'])
 def submit_quiz():
-    q1 = request.form.get('q1', '')
+    data = get_req_data()
+    q1 = data.get('q1', '')
     score_msg = "Correct! Always verify sender identity and destination URL before opening links." if q1 == 'verify' else "Incorrect. Never open or share unknown links without sender verification."
     return jsonify({'status': 'success', 'case_id': 'CX-QUIZ', 'risk_score': 0 if q1 == 'verify' else 100, 'risk_level': 'INFO', 'details': score_msg, 'email_body': ''})
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
+    
