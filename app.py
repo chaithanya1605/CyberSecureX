@@ -159,17 +159,35 @@ def login():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        if request.form.get('password') != request.form.get('confirmPassword'):
-            return "Passwords do not match", 400
-        new_user = User(
-            username=request.form.get('username'),
-            email=request.form.get('email'),
-            password_hash=generate_password_hash(request.form.get('password')),
-            phone=request.form.get('phone')
-        )
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirmPassword')
+        phone = request.form.get('phone')
+
+        if password != confirm_password:
+            return render_template('Registration_page.html', error="Passwords do not match!")
+
+        # Check if username or email already exists to prevent SQL IntegrityError
+        existing_user = User.query.filter((User.username == username) | (User.email == email)).first()
+        if existing_user:
+            return render_template('Registration_page.html', error="Username or Email is already registered!")
+
+        try:
+            new_user = User(
+                username=username,
+                email=email,
+                password_hash=generate_password_hash(password),
+                phone=phone
+            )
+            db.session.add(new_user)
+            db.session.commit()
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            print(f"Registration Error: {e}")
+            return render_template('Registration_page.html', error="Registration failed. Please try again.")
+
     return render_template('Registration_page.html')
 
 @app.route('/dashboard')
