@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Incident Report - {{ case_id }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #020818;
+            color: #e1eaf5;
+            padding: 30px;
+            margin: 0;
+        }
+        .report-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(16, 36, 58, 0.95);
+            border: 2px solid #00eaff;
+            border-radius: 12px;
+            padding: 40px;
+            box-shadow: 0 0 30px rgba(0, 234, 255, 0.3);
+        }
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid rgba(0, 234, 255, 0.4);
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        .brand {
+            font-size: 26px;
+            font-weight: bold;
+            color: #00eaff;
+        }
+        .case-badge {
+            background-color: #5c1a1b;
+            border: 1px solid #ff4d4d;
+            color: #ff9999;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            background: rgba(26, 35, 58, 0.9);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(241, 241, 241, 0.2);
+        }
+        .meta-item label {
+            display: block;
+            font-size: 12px;
+            color: #8fa3bf;
+            text-transform: uppercase;
+        }
+        .meta-item span {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+        .risk-card {
+            background-color: rgba(92, 26, 27, 0.9);
+            border: 1px solid #ff4d4d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+        .risk-score {
+            font-size: 28px;
+            font-weight: bold;
+            color: #ff4d4d;
+        }
+        .section-title {
+            color: #00eaff;
+            font-size: 18px;
+            border-bottom: 1px solid rgba(0, 234, 255, 0.3);
+            padding-bottom: 6px;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+        .details-box {
+            background-color: #0d1627;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            border: 1px solid rgba(0, 234, 255, 0.2);
+        }
+        .btn-print {
+            background-color: #00eaff;
+            color: #041230;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 30px;
+            width: 100%;
+        }
+        .btn-print:hover {
+            background-color: #00c4d6;
+        }
+        @media print {
+            body { background-color: #ffffff; color: #000000; }
+            .report-container { border: 1px solid #000; box-shadow: none; background: #fff; color: #000; }
+            .meta-grid, .details-box { background: #f4f4f4; color: #000; border: 1px solid #ccc; }
+            .btn-print { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="report-container">
+        <div class="report-header">
+            <div class="brand">🛡️ CyberSecureX Dossier Engine</div>
+            <div class="case-badge">{{ risk_level }} RISK ALERT</div>
+        </div>
+
+        <div class="meta-grid">
+            <div class="meta-item">
+                <label>Incident Case ID</label>
+                <span>{{ case_id }}</span>
+            </div>
+            <div class="meta-item">
+                <label>Scan Date & Time</label>
+                <span>{{ timestamp }}</span>
+            </div>
+            <div class="meta-item">
+                <label>Threat Module</label>
+                <span>{{ scan_type }}</span>
+            </div>
+            <div class="meta-item">
+                <label>Target / Input</label>
+                <span>{{ target_info }}</span>
+            </div>
+        </div>
+
+        <div class="risk-card">
+            <label style="color:#ff8080; font-weight:bold;">CALCULATED THREAT RISK SCORE</label>
+            <div class="risk-score">{{ risk_score }}% [CRITICAL ASSESSMENT]</div>
+        </div>
+
+        <div class="section-title">EVIDENCE ASSESSMENT & DETECTED VECTORS</div>
+        <div class="details-box">{{ details }}</div>
+
+        <div class="section-title">OFFICIAL HELPLINE DISCLOSURE</div>
+        <p style="font-size: 13px; color: #c0d4ed; line-height: 1.6;">
+            If you have experienced financial fraud or identity theft, report this Incident Case ID immediately to the National Cyber Crime Helpline by dialing <strong>1930</strong> or submitting this dossier at <strong>www.cybercrime.gov.in</strong>.
+        </p>
+
+        <button class="btn-print" onclick="window.print()">🖨️ Print / Save Report as PDF</button>
+    </div>
+
+</body>
+</html>

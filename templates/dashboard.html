@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - CyberSecureX</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body class="dashboard-body">
+
+    <!-- Top Navigation Bar -->
+    <header class="top-navbar">
+        <div class="brand-logo">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2Z" fill="#00eaFF" opacity="0.2"/>
+                <path d="M12 2L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 2ZM12 11.99H19C18.47 16.11 15.72 19.78 12 20.93V12H5V6.3L12 3.98V11.99Z" fill="#00eaFF"/>
+            </svg>
+            <span>CyberSecureX</span>
+        </div>
+        <div class="nav-right">
+            <span class="user-badge">{{ username if username else 'Admin User' }}</span>
+            <a href="/logout" class="logout-btn">Logout ➔</a>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <nav class="sidebar">
+            <a id="nav-dashboard" class="active" onclick="showSection('dashboard-view', this)">📊 Dashboard View</a>
+            <a id="nav-comm" onclick="showSection('comm-threats', this)">📩 Comm. Threats</a>
+            <a id="nav-account" onclick="showSection('account-security', this)">🔑 Account Security</a>
+            <a id="nav-digital" onclick="showSection('digital-safety', this)">🌐 Digital Safety</a>
+            <a id="nav-ai" onclick="showSection('ai-assistant', this)">🤖 AI Assistant</a>
+            <a id="nav-awareness" onclick="showSection('awareness-center', this)">💡 Awareness Center</a>
+            <a id="nav-history" onclick="showSection('scan-history-section', this)">📄 Scan History</a>
+        </nav>
+
+        <main class="main-content">
+            <!-- SECTION 1: DASHBOARD VIEW -->
+            <section id="dashboard-view" class="module-section active-section">
+                <h1 class="page-title">Security Command Center</h1>
+                <p class="page-subtitle">Protection & Threat Detection Modules</p>
+
+                <div class="cards-grid">
+                    <div class="dash-card">
+                        <h3>💬 Communication Threats</h3>
+                        <div class="module-row">
+                            <span class="module-name">📩 Email Scanner</span>
+                            <button class="btn-action btn-blue" onclick="showSection('comm-threats', document.getElementById('nav-comm'))">Analyze Inbox</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">📱 SMS / WhatsApp Filter</span>
+                            <button class="btn-action btn-blue" onclick="showSection('comm-threats', document.getElementById('nav-comm'))">Filter SMS/WA</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">📞 Mobile Spam Detection</span>
+                            <button class="btn-action btn-blue" onclick="showSection('comm-threats', document.getElementById('nav-comm'))">Check Spam #</button>
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>🔑 Account Security</h3>
+                        <div class="module-row">
+                            <span class="module-name">🛡️ Password Strength Audit</span>
+                            <button class="btn-action btn-blue" onclick="showSection('account-security', document.getElementById('nav-account'))">Audit Now</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">🔒 2FA Configuration</span>
+                            <button class="btn-action btn-danger" onclick="showSection('account-security', document.getElementById('nav-account'))">Action Required</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">📷 Instagram Fake Account</span>
+                            <button class="btn-action btn-blue" onclick="showSection('account-security', document.getElementById('nav-account'))">Verify Profiles</button>
+                        </div>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>🌐 Digital Safety</h3>
+                        <div class="module-row">
+                            <span class="module-name">🔗 Malicious URL Checker</span>
+                            <button class="btn-action btn-blue" onclick="showSection('digital-safety', document.getElementById('nav-digital'))">Test Link</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">📷 Safe QR Code Scanner</span>
+                            <button class="btn-action btn-blue" onclick="showSection('digital-safety', document.getElementById('nav-digital'))">Upload QR</button>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name">📄 Incident Dossier Logs</span>
+                            <button class="btn-action btn-success" onclick="showSection('scan-history-section', document.getElementById('nav-history'))">View Logs</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dash-card">
+                    <h3>🎓 Cyber Awareness & Assistance</h3>
+                    <div class="module-row">
+                        <span class="module-name">🤖 AI Cyber Assistant (1930 / Helpline)</span>
+                        <button class="btn-action btn-indigo" onclick="showSection('ai-assistant', document.getElementById('nav-ai'))">Open Chat</button>
+                    </div>
+                    <div class="module-row">
+                        <span class="module-name">🎯 Security Practice Quiz</span>
+                        <button class="btn-action btn-blue" onclick="showSection('awareness-center', document.getElementById('nav-awareness'))">Start Quiz</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 2: COMM THREATS -->
+            <section id="comm-threats" class="module-section">
+                <h1 class="page-title">💬 Communication Threats</h1>
+                <p class="page-subtitle">Email Scanner, SMS / WhatsApp Filter & Mobile Spam Detection</p>
+
+                <div class="cards-grid">
+                    <div class="dash-card">
+                        <h3>📩 Email Scanner</h3>
+                        <form action="/analyze_email" method="post" data-scan-type="Email Scan">
+                            <label>Sender Email:</label>
+                            <input type="email" name="sender" placeholder="example@mail.com" required>
+                            <label>Email Subject:</label>
+                            <input type="text" name="subject" placeholder="Enter email subject" required>
+                            <label>Email Content:</label>
+                            <textarea name="content" placeholder="Paste email content here..." required></textarea>
+                            <button type="submit">Analyze Inbox</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>📱 SMS / WhatsApp Filter</h3>
+                        <form action="/analyze_message" method="post" data-scan-type="SMS/WhatsApp Filter">
+                            <label>Sender Phone Number:</label>
+                            <input type="tel" name="phone" placeholder="+91 9876543210" required>
+                            <label>Platform:</label>
+                            <select name="platform">
+                                <option value="sms">SMS Message</option>
+                                <option value="whatsapp">WhatsApp Message</option>
+                            </select>
+                            <label>Message Content:</label>
+                            <textarea name="message" placeholder="Paste message here..." required></textarea>
+                            <button type="submit">Filter SMS/WA</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>📞 Mobile Spam Detection</h3>
+                        <form action="/check_spam" method="post" data-scan-type="Spam Call/SMS">
+                            <label>Phone Number:</label>
+                            <input type="tel" name="phone" placeholder="+91 9876543210" required>
+                            <label>Communication Type:</label>
+                            <select name="commType">
+                                <option value="call">Spam / Fraud Call</option>
+                                <option value="sms">Suspicious SMS</option>
+                            </select>
+                            <label>Call / Message Details:</label>
+                            <textarea name="details" placeholder="Describe the suspicious communication..."></textarea>
+                            <button type="submit">Check Spam #</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 3: ACCOUNT SECURITY -->
+            <section id="account-security" class="module-section">
+                <h1 class="page-title">🔑 Account Security</h1>
+                <p class="page-subtitle">Password Strength Audit, 2FA Configuration & Instagram Fake Account Check</p>
+
+                <div class="cards-grid">
+                    <div class="dash-card">
+                        <h3>🛡️ Password Strength Audit</h3>
+                        <form action="/check_password" method="post" data-scan-type="Password Audit">
+                            <label>Enter Test Password:</label>
+                            <input type="password" name="password" placeholder="Enter password to audit" required>
+                            <button type="submit">Audit Now</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>🔒 2FA Configuration</h3>
+                        <form action="/check_2fa" method="post" data-scan-type="2FA Audit">
+                            <label>Account Name:</label>
+                            <input type="text" name="accountName" placeholder="Email / Instagram" required>
+                            <label>2FA Enabled?</label>
+                            <select name="twoFactor">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                            <label>Backup Codes Available?</label>
+                            <select name="backupCodes">
+                                <option value="yes">Yes</option>
+                                <option value="no">No</option>
+                            </select>
+                            <button type="submit">Check Security</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>📷 Instagram Fake Account Audit</h3>
+                        <form action="/analyze_instagram" method="post" data-scan-type="Instagram Audit">    
+                            <label for="Username">Username :</label>
+                            <input type="text" id="Username" name="Username" placeholder="Enter username" required>
+
+                            <label for="followers">Followers :</label>
+                            <input type="number" id="followers" name="Followers" placeholder="enter followers no" min="0" required>
+
+                            <label for="Following">Following :</label>
+                            <input type="number" id="Following" name="Following" placeholder="following no" min="0" required>
+                            
+                            <label for="Post">Total Posts :</label>
+                            <input type="number" id="Post" name="Posts" placeholder="enter posts no" required>
+                            
+                            <label for="Bio">Account Bio:</label>
+                            <textarea id="Bio" name="Bio" placeholder="e.g. DM to earn daily income...."></textarea>
+
+                            <button type="submit">Check Account</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 4: DIGITAL SAFETY -->
+            <section id="digital-safety" class="module-section">
+                <h1 class="page-title">🌐 Digital Safety</h1>
+                <p class="page-subtitle">Malicious URL Checker & Safe QR Code Scanner</p>
+
+                <div class="cards-grid-2">
+                    <div class="dash-card">
+                        <h3>🔗 Malicious URL Checker</h3>
+                        <form action="/analyze_url" method="post" data-scan-type="Website Scan">
+                            <label>Enter Website URL:</label>
+                            <input type="url" name="url" placeholder="https://example.com" required>
+                            <button type="submit">Test Link</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>📷 Safe QR Code Scanner</h3>
+                        <form action="/scan_qr" method="post" enctype="multipart/form-data" data-scan-type="QR Code Scan">
+                            <label>Upload QR Code Image:</label>
+                            <input type="file" name="qrImage" accept="image/*" required>
+                            <button type="submit">Upload QR</button>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 5: AI ASSISTANT -->
+            <section id="ai-assistant" class="module-section">
+                <h1 class="page-title">🤖 AI Cyber Assistant (1930 / Helpline)</h1>
+                <p class="page-subtitle">Get instant help for cyber safety questions and emergency reporting</p>
+
+                <div class="dash-card">
+                    <h3>💬 AI Cyber Assistant Chat</h3>
+                    <div class="module-row">
+                        <span class="module-name"><strong>AI Assistant:</strong> Hello! How can I help you secure your online accounts today?</span>
+                    </div>
+                    <form action="/ask_ai" method="post" style="margin-top: 15px;">
+                        <label>Ask a Question:</label>
+                        <input type="text" name="question" placeholder="Type your cyber safety question..." required>
+                        <button type="submit">Send Question</button>
+                    </form>
+                </div>
+
+                <div class="dash-card">
+                    <h3>🚨 I've Been Scammed — Emergency Helpline</h3>
+                    <div class="module-row">
+                        <span class="module-name">📞 <strong>Cyber Crime Helpline:</strong> Dial <strong>1930</strong> (India) | <strong>Portal:</strong> www.cybercrime.gov.in</span>
+                        <a href="https://www.cybercrime.gov.in" target="_blank" class="btn-action btn-danger">Report Incident</a>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 6: AWARENESS CENTER -->
+            <section id="awareness-center" class="module-section">
+                <h1 class="page-title">💡 Cyber Awareness & Security Quiz</h1>
+                <p class="page-subtitle">Test your knowledge and learn how to stay protected online</p>
+
+                <div class="cards-grid-2">
+                    <div class="dash-card">
+                        <h3>🎯 Security Practice Quiz</h3>
+                        <form action="/submit_quiz" method="post">
+                            <label><strong>1. What should you do when you receive an unknown link?</strong></label>
+                            <label><input type="radio" name="q1" value="open" required> Open it immediately</label>
+                            <label><input type="radio" name="q1" value="verify" checked> Verify the sender and destination first</label>
+                            <label><input type="radio" name="q1" value="share"> Share it with friends</label>
+                            <button type="submit">Submit Quiz</button>
+                        </form>
+                    </div>
+
+                    <div class="dash-card">
+                        <h3>🛡️ Cyber Awareness Guidelines</h3>
+                        <div class="module-row">
+                            <span class="module-name"><strong>Password Safety:</strong> Use strong passwords, enable 2FA, and never share OTPs.</span>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name"><strong>Phishing Protection:</strong> Verify sender emails and avoid suspicious attachments.</span>
+                        </div>
+                        <div class="module-row">
+                            <span class="module-name"><strong>Safe Browsing:</strong> Keep software updated and use trusted HTTPS websites.</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SECTION 7: SCAN HISTORY -->
+            <section id="scan-history-section" class="module-section">
+                <h1 class="page-title">📄 Scan History & Incident Dossier</h1>
+                <p class="page-subtitle">Live log of threat assessment scans performed in your account session</p>
+
+                <div class="dash-card">
+                    <h3>📄 Incident Dossier Engine — Assessment Logs</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Date & Time</th>
+                                <th>Scan Type</th>
+                                <th>Target / Input</th>
+                                <th>Result</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body">
+                            {% if scans and scans|length > 0 %}
+                                {% for scan in scans %}
+                                <tr>
+                                    <td>{{ scan.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                    <td>{{ scan.scan_type }}</td>
+                                    <td>{{ scan.target_info }}</td>
+                                    <td>
+                                        <span class="btn-action {% if scan.risk_level == 'HIGH' %}btn-danger{% elif scan.risk_level == 'MEDIUM' %}btn-indigo{% else %}btn-success{% endif %}">
+                                            {{ scan.risk_level }} ({{ scan.risk_score }}%)
+                                        </span>
+                                    </td>
+                                    <td>Completed</td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr id="no-history-row">
+                                    <td colspan="5" style="text-align: center; color: #8fa3bf; padding: 25px;">
+                                        No scan history recorded yet. Perform a scan in any module to generate history logs.
+                                    </td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+        function showSection(sectionId, navElement) {
+            var sections = document.querySelectorAll('.module-section');
+            for (var i = 0; i < sections.length; i++) {
+                sections[i].classList.remove('active-section');
+            }
+
+            document.getElementById(sectionId).classList.add('active-section');
+
+            if (navElement) {
+                var navLinks = document.querySelectorAll('.sidebar a');
+                for (var j = 0; j < navLinks.length; j++) {
+                    navLinks[j].classList.remove('active');
+                }
+                navElement.classList.add('active');
+            }
+        }
+    </script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>
